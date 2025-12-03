@@ -1,0 +1,88 @@
+# 🏠 Basic Home Network Setup
+
+## 📌 Project Overview
+
+This project demonstrates the design and implementation of a **basic home network** using a router, switch, wireless access point, and multiple end devices. The main goal is to provide **secure, reliable, and automated network connectivity** using DHCP, proper IP addressing, and basic security configurations.
+
+This project is ideal for showcasing **fundamental networking skills** required for entry-level Network Engineer, IT Support, and Cybersecurity roles.
+
+---
+
+## 🧱 Network Topology
+
+Internet
+|
+ISP Modem
+|
+Home Router
+/ \
+Switch Wi-Fi AP
+| | |
+PCs etc Mobile Devices
+
+---
+
+## 🛠 Technologies & Tools Used
+
+- Cisco Router & Switch
+- DHCP (Dynamic Host Configuration Protocol)
+- Static & Dynamic IP Addressing
+- Wireless Networking (WPA2/WPA3)
+- Cisco Packet Tracer
+- Windows / Linux End Devices
+
+---
+
+## 🌐 IP Addressing Scheme
+
+| Device       | IP Address                   | Description     |
+| ------------ | ---------------------------- | --------------- |
+| Router (LAN) | 192.168.1.1                  | Default Gateway |
+| DHCP Pool    | 192.168.1.10 – 192.168.1.100 | Dynamic Clients |
+| Subnet Mask  | 255.255.255.0                | /24 Network     |
+| DNS Server   | 8.8.8.8                      | Google DNS      |
+
+---
+
+## ⚙️ Router Configuration (Core Commands)
+
+```bash
+enable
+configure terminal
+
+ip dhcp excluded-address 192.168.1.1 192.168.1.9
+
+ip dhcp pool HOME_NETWORK
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ dns-server 8.8.8.8
+
+interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+enable secret strongpassword123
+
+line vty 0 4
+ password cisco123
+ login
+```
+
+Security Configuration
+
+Changed default router login credentials
+
+Enabled WPA2/WPA3 encryption on Wi-Fi
+
+Disabled unnecessary remote access
+
+Applied basic firewall protections on router
+
+Testing & Verification
+Test Command Purpose
+Gateway Reachability ping 192.168.1.1 Verify router access
+Internet Access ping 8.8.8.8 Verify internet
+DHCP Assignment ipconfig / ifconfig Check auto IP
+LAN Communication ping <PC-IP> Verify internal network
+
+✅ Successful ping replies confirm correct configuration.
