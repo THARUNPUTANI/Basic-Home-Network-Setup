@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Home Network Interactive Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6; /* Warm neutral cream */
+            color: #334155; /* Slate 700 */
+        }
+
+        /* Custom Chart Container Styling as per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width for large screens */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Topology Node Styling */
+        .node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .node:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .node.active {
+            border-color: #f59e0b; /* Amber 500 */
+            background-color: #fffbeb; /* Amber 50 */
+        }
+
+        /* Connector Lines using CSS only (No SVG) */
+        .connector-v {
+            width: 2px;
+            background-color: #cbd5e1; /* Slate 300 */
+            margin: 0 auto;
+        }
+        .connector-h {
+            height: 2px;
+            background-color: #cbd5e1;
+            margin: 0 auto;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Professional - Cream Background (#fdfaf6), Slate Text (#334155), Navy Primary (#1e293b), Amber Accent (#f59e0b) -->
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the context (Project Objective).
+         2. Interactive Topology Explorer: The core educational tool. Users click nodes (Modem, Router, Devices) in a CSS-grid based visual tree to reveal technical details (Layer, IP, Function) in a side panel. This replaces a static diagram.
+         3. Budget & Equipment Calculator: Interactive tool using Chart.js. Users toggle equipment tiers to see cost implications, directly addressing the "Equipment and Budget" section.
+         4. Deployment Checklist: A gamified list of "Success Criteria" and "Scope" items. Checking them off updates a progress ring, reinforcing the "Key Success Criteria".
+         5. Security & Configuration Accordion: Detailed text content hidden behind interactive headers to prevent overwhelm, covering the "Security Implementation" section.
+         Why this structure? It breaks the technical report into: Visual Understanding -> Planning/Cost -> Execution -> Verification.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Goal: Explain Network Topology. Method: Interactive CSS Grid Tree. Interaction: Click node -> Update Info Panel. Justification: Allows user to explore the flow of data and specific roles of devices without a dense text block. (NO SVG).
+         2. Goal: Visualize Cost. Method: Stacked Bar Chart (Chart.js). Interaction: Dropdown/Checkbox inputs update chart data. Justification: Makes the budget range ($115-$320) tangible and adjustable.
+         3. Goal: Track Progress. Method: Doughnut Chart (Chart.js) acting as a progress ring. Interaction: Checkboxes update the chart. Justification: Gamifies the "Key Success Criteria".
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased selection:bg-amber-200 selection:text-slate-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-network-wired text-amber-500 text-2xl mr-3"></i>
+                    <span class="font-bold text-slate-800 text-xl tracking-tight">NetSetup<span class="text-amber-500">.Pro</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="scrollToSection('topology')" class="text-slate-600 hover:text-amber-600 font-medium transition">Topology</button>
+                    <button onclick="scrollToSection('budget')" class="text-slate-600 hover:text-amber-600 font-medium transition">Budget</button>
+                    <button onclick="scrollToSection('checklist')" class="text-slate-600 hover:text-amber-600 font-medium transition">Success Criteria</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-slate-900 text-white pt-20 pb-24">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Basic Home Network <span class="text-amber-400">Mastery</span></h1>
+            <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                Design, document, and deploy a secure, reliable network for streaming, gaming, and remote work. 
+                Based on standard FTTH/Cable setups.
+            </p>
+            <div class="flex justify-center gap-4">
+                <button onclick="scrollToSection('topology')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-full transition shadow-lg hover:shadow-amber-500/20">
+                    Start Exploring
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 mb-20">
+
+        <!-- Section 1: Interactive Topology -->
+        <section id="topology" class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 md:p-10 mb-12">
+            <div class="mb-8 border-b border-slate-100 pb-6">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Logical Network Topology</h2>
+                <p class="text-slate-600 leading-relaxed">
+                    This interactive diagram represents the flow of data from the Internet to your devices. 
+                    It follows a <strong>Star Topology</strong> centered around the Primary Router. 
+                    Click on any component in the diagram below to understand its specific role, OSI Layer, and IP addressing scheme as defined in the project scope.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Visual Diagram Area (Left Col) -->
+                <div class="lg:col-span-2 bg-slate-50 rounded-xl p-8 border border-slate-200 relative">
+                    <div class="flex flex-col items-center">
+                        
+                        <!-- ISP / Cloud -->
+                        <div id="node-isp" class="node bg-white border-2 border-slate-300 rounded-lg p-4 w-48 text-center hover:border-sky-500 cursor-pointer z-10" onclick="selectNode('isp')">
+                            <i class="fas fa-cloud text-3xl text-sky-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-700">ISP / Internet</h3>
+                            <p class="text-xs text-slate-500">Fiber/Cable Source</p>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="connector-v h-8"></div>
+
+                        <!-- Modem -->
+                        <div id="node-modem" class="node bg-white border-2 border-slate-300 rounded-lg p-4 w-48 text-center hover:border-indigo-500 cursor-pointer z-10" onclick="selectNode('modem')">
+                            <i class="fas fa-server text-3xl text-indigo-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-700">Modem / ONT</h3>
+                            <p class="text-xs text-slate-500">Signal Translation</p>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="connector-v h-8"></div>
+
+                        <!-- Router (Central Hub) -->
+                        <div id="node-router" class="node bg-white border-2 border-amber-400 shadow-md rounded-lg p-4 w-56 text-center hover:border-amber-600 cursor-pointer z-10 relative" onclick="selectNode('router')">
+                            <div class="absolute -top-3 -right-3 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">Core</div>
+                            <i class="fas fa-wifi text-3xl text-amber-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-800">Primary Router</h3>
+                            <p class="text-xs text-slate-500">Routing, NAT, Firewall</p>
+                        </div>
+
+                        <!-- Connector Tree -->
+                        <div class="w-full max-w-md h-8 relative mt-0">
+                            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300 -ml-px"></div>
+                            <div class="absolute top-8 left-1/4 right-1/4 h-px bg-slate-300"></div>
+                            <div class="absolute top-8 left-1/4 h-4 w-px bg-slate-300"></div>
+                            <div class="absolute top-8 right-1/4 h-4 w-px bg-slate-300"></div>
+                        </div>
+
+                        <!-- End Devices -->
+                        <div class="flex justify-between w-full max-w-md mt-4">
+                            <!-- Wired Device -->
+                            <div id="node-wired" class="node bg-white border-2 border-slate-300 rounded-lg p-3 w-40 text-center hover:border-emerald-500 cursor-pointer" onclick="selectNode('wired')">
+                                <i class="fas fa-desktop text-2xl text-emerald-500 mb-2"></i>
+                                <h3 class="font-bold text-slate-700 text-sm">Wired Devices</h3>
+                                <p class="text-xs text-slate-500">PC / Console</p>
+                            </div>
+                            
+                            <!-- Wireless Device -->
+                            <div id="node-wireless" class="node bg-white border-2 border-slate-300 rounded-lg p-3 w-40 text-center hover:border-pink-500 cursor-pointer" onclick="selectNode('wireless')">
+                                <i class="fas fa-mobile-alt text-2xl text-pink-500 mb-2"></i>
+                                <h3 class="font-bold text-slate-700 text-sm">Wireless Devices</h3>
+                                <p class="text-xs text-slate-500">Phone / Laptop</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Panel (Right Col) -->
+                <div class="bg-slate-800 text-white rounded-xl p-6 flex flex-col justify-center shadow-lg transition-all duration-300" id="info-panel">
+                    <div class="text-center mb-6">
+                        <div class="inline-block p-3 rounded-full bg-slate-700 mb-4" id="info-icon-container">
+                            <i class="fas fa-info-circle text-2xl text-slate-300" id="info-icon"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1" id="info-title">Select a Component</h3>
+                        <p class="text-slate-400 text-sm" id="info-subtitle">Click the diagram to view details</p>
+                    </div>
+                    
+                    <div class="space-y-4 hidden" id="info-content">
+                        <div class="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-bold block mb-1">Function</span>
+                            <p class="text-sm text-slate-200" id="info-function">...</p>
+                        </div>
+                        <div class="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-bold block mb-1">OSI Layer</span>
+                            <p class="text-sm text-slate-200 font-mono" id="info-layer">...</p>
+                        </div>
+                        <div class="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-bold block mb-1">IP Addressing</span>
+                            <p class="text-sm text-slate-200" id="info-ip">...</p>
+                        </div>
+                        <div class="bg-amber-900/30 p-3 rounded-lg border border-amber-500/30 mt-4" id="info-tip-box">
+                            <span class="text-xs uppercase tracking-wider text-amber-400 font-bold block mb-1"><i class="fas fa-lightbulb mr-1"></i> Setup Tip</span>
+                            <p class="text-sm text-amber-100" id="info-tip">...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Equipment & Budget Calculator -->
+        <section id="budget" class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Calculator Controls -->
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-100 p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Equipment Configurator</h2>
+                    <p class="text-slate-500 text-sm mb-6">Adjust the components to estimate your project budget. Costs are estimated ranges.</p>
+                    
+                    <div class="space-y-6">
+                        <!-- Router Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Router Tier (Wi-Fi 6)</label>
+                            <select id="router-select" onchange="updateBudget()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5">
+                                <option value="80">Budget Entry-Level ($80)</option>
+                                <option value="165" selected>Mid-Range Performer ($165)</option>
+                                <option value="250">High-Performance Gaming ($250)</option>
+                            </select>
+                            <p class="text-xs text-slate-400 mt-1">Dual-band 802.11ax recommended.</p>
+                        </div>
+
+                        <!-- Cables -->
+                        <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-700">Ethernet Cables (Cat 6)</h4>
+                                <p class="text-xs text-slate-500">1x 3ft (WAN), 2x 10ft (LAN)</p>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-mono mr-3">$25</span>
+                                <input id="cable-check" type="checkbox" checked onchange="updateBudget()" class="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500">
+                            </div>
+                        </div>
+
+                        <!-- Surge Protector -->
+                        <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-700">Surge Protector</h4>
+                                <p class="text-xs text-slate-500">6-outlet minimum protection</p>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-mono mr-3">$25</span>
+                                <input id="surge-check" type="checkbox" checked onchange="updateBudget()" class="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500">
+                            </div>
+                        </div>
+
+                         <!-- Cable Mgmt -->
+                         <div class="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-700">Cable Management</h4>
+                                <p class="text-xs text-slate-500">Velcro straps / ties</p>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-mono mr-3">$10</span>
+                                <input id="mgmt-check" type="checkbox" checked onchange="updateBudget()" class="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded focus:ring-amber-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-200 flex justify-between items-center">
+                        <span class="text-lg font-bold text-slate-600">Total Estimate:</span>
+                        <span id="total-cost" class="text-3xl font-bold text-amber-600">$225</span>
+                    </div>
+                </div>
+
+                <!-- Budget Visualization -->
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 flex flex-col items-center justify-center">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 w-full text-left">Cost Breakdown</h3>
+                    <!-- Chart Container with Mandatory Styling -->
+                    <div class="chart-container">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Success Criteria & Checklist -->
+        <section id="checklist" class="bg-slate-900 rounded-2xl shadow-xl overflow-hidden text-white">
+            <div class="p-8 md:p-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+                
+                <div class="lg:col-span-1">
+                    <h2 class="text-3xl font-bold mb-4">Project Success</h2>
+                    <p class="text-slate-400 mb-8">
+                        Verify your installation against the Key Success Criteria defined in the project scope. 
+                        Achieving 100% ensures a secure and functional network.
+                    </p>
+                    
+                    <!-- Progress Chart -->
+                    <div class="chart-container" style="height: 200px; max-height: 200px;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <p class="text-center mt-4 text-2xl font-bold text-amber-400" id="progress-text">0% Complete</p>
+                </div>
+
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="bg-slate-800 p-4 rounded-lg flex items-start space-x-4 border border-slate-700 hover:border-amber-500/50 transition cursor-pointer" onclick="toggleCheck('c1')">
+                        <div class="mt-1">
+                            <input type="checkbox" id="c1" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-600 bg-slate-700 border-slate-500 pointer-events-none">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">Internet Connectivity</h4>
+                            <p class="text-sm text-slate-400">All connected devices (wired and wireless) can successfully load external websites.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-4 rounded-lg flex items-start space-x-4 border border-slate-700 hover:border-amber-500/50 transition cursor-pointer" onclick="toggleCheck('c2')">
+                        <div class="mt-1">
+                            <input type="checkbox" id="c2" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-600 bg-slate-700 border-slate-500 pointer-events-none">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">Wireless Security</h4>
+                            <p class="text-sm text-slate-400">Wi-Fi is secured using WPA2 or WPA3 encryption with a strong, unique passphrase.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-4 rounded-lg flex items-start space-x-4 border border-slate-700 hover:border-amber-500/50 transition cursor-pointer" onclick="toggleCheck('c3')">
+                        <div class="mt-1">
+                            <input type="checkbox" id="c3" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-600 bg-slate-700 border-slate-500 pointer-events-none">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">Wired Performance</h4>
+                            <p class="text-sm text-slate-400">Desktop/Console achieves expected ISP speeds via Ethernet connection.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-4 rounded-lg flex items-start space-x-4 border border-slate-700 hover:border-amber-500/50 transition cursor-pointer" onclick="toggleCheck('c4')">
+                        <div class="mt-1">
+                            <input type="checkbox" id="c4" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-600 bg-slate-700 border-slate-500 pointer-events-none">
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg">Documentation</h4>
+                            <p class="text-sm text-slate-400">Network diagram and equipment list are accurate and saved.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
+            <p>&copy; 2025 Basic Home Network Project. Generated from Project Description.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA & STATE ---
+        const topologyData = {
+            'isp': {
+                title: "ISP / Internet",
+                function: "Source of connectivity via Fiber (FTTH) or Coaxial Cable.",
+                layer: "Public Internet (WAN)",
+                ip: "Public IP Address (Assigned to Modem)",
+                icon: "fa-cloud",
+                color: "text-sky-500",
+                tip: "Contact your ISP if the 'Internet' light on your modem is blinking or red."
+            },
+            'modem': {
+                title: "Modem / ONT",
+                function: "Translates ISP signal (Light/RF) into Ethernet digital signals.",
+                layer: "Layer 1 (Physical) & Layer 2 (Data Link)",
+                ip: "Bridge Mode (Pass-through)",
+                icon: "fa-server",
+                color: "text-indigo-500",
+                tip: "Restarting this device is the first step in troubleshooting connection issues."
+            },
+            'router': {
+                title: "Primary Router",
+                function: "Central Hub. Performs Routing, NAT, DHCP, and Firewall security.",
+                layer: "Layer 3 (Network)",
+                ip: "WAN: Public IP / LAN: Private Gateway (192.168.1.1)",
+                icon: "fa-wifi",
+                color: "text-amber-500",
+                tip: "Change the default Admin password immediately to secure your network."
+            },
+            'wired': {
+                title: "Wired Devices",
+                function: "End-user devices (Desktop, TV) needing max speed/stability.",
+                layer: "Layer 3 (End Device)",
+                ip: "Private IP via DHCP (e.g., 192.168.1.10)",
+                icon: "fa-desktop",
+                color: "text-emerald-500",
+                tip: "Use Cat 6 cables for best performance over longer distances."
+            },
+            'wireless': {
+                title: "Wireless Devices",
+                function: "Portable devices (Phones, Laptops) connecting via WAP.",
+                layer: "Layer 3 (End Device)",
+                ip: "Private IP via DHCP (e.g., 192.168.1.11)",
+                icon: "fa-mobile-alt",
+                color: "text-pink-500",
+                tip: "Use 5GHz band for speed (near router), 2.4GHz for range (far from router)."
+            }
+        };
+
+        let budgetChartInstance = null;
+        let progressChartInstance = null;
+
+        // --- NAVIGATION ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- TOPOLOGY INTERACTION ---
+        function selectNode(nodeId) {
+            // UI State
+            document.querySelectorAll('.node').forEach(el => {
+                el.classList.remove('active', 'border-amber-500', 'bg-amber-50');
+                if(!el.classList.contains('border-2')) el.classList.add('border-2'); // Restore default border width if needed
+            });
+            const activeNode = document.getElementById(`node-${nodeId}`);
+            activeNode.classList.add('active');
+
+            // Data Population
+            const data = topologyData[nodeId];
+            const panel = document.getElementById('info-panel');
+            const content = document.getElementById('info-content');
+
+            // Animate Panel Content
+            content.classList.add('hidden');
+            
+            setTimeout(() => {
+                // Icon
+                const iconContainer = document.getElementById('info-icon-container');
+                iconContainer.innerHTML = `<i class="fas ${data.icon} text-2xl ${data.color}"></i>`;
+                
+                // Text
+                document.getElementById('info-title').innerText = data.title;
+                document.getElementById('info-subtitle').innerText = "Component Details";
+                document.getElementById('info-function').innerText = data.function;
+                document.getElementById('info-layer').innerText = data.layer;
+                document.getElementById('info-ip').innerText = data.ip;
+                document.getElementById('info-tip').innerText = data.tip;
+
+                // Show
+                content.classList.remove('hidden');
+                content.classList.add('animate-fade-in');
+            }, 100);
+        }
+
+        // --- BUDGET CALCULATOR ---
+        function initBudgetChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            budgetChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Hardware Cost'],
+                    datasets: [
+                        { label: 'Router', data: [165], backgroundColor: '#f59e0b' },
+                        { label: 'Cables', data: [25], backgroundColor: '#cbd5e1' },
+                        { label: 'Surge Prot.', data: [25], backgroundColor: '#94a3b8' },
+                        { label: 'Mgmt', data: [10], backgroundColor: '#64748b' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.raw;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBudget() {
+            const routerCost = parseInt(document.getElementById('router-select').value);
+            const cablesCost = document.getElementById('cable-check').checked ? 25 : 0;
+            const surgeCost = document.getElementById('surge-check').checked ? 25 : 0;
+            const mgmtCost = document.getElementById('mgmt-check').checked ? 10 : 0;
+
+            const total = routerCost + cablesCost + surgeCost + mgmtCost;
+            document.getElementById('total-cost').innerText = '$' + total;
+
+            // Update Chart
+            budgetChartInstance.data.datasets[0].data = [routerCost];
+            budgetChartInstance.data.datasets[1].data = [cablesCost];
+            budgetChartInstance.data.datasets[2].data = [surgeCost];
+            budgetChartInstance.data.datasets[3].data = [mgmtCost];
+            budgetChartInstance.update();
+        }
+
+        // --- CHECKLIST & PROGRESS ---
+        function initProgressChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            progressChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Complete', 'Remaining'],
+                    datasets: [{
+                        data: [0, 4],
+                        backgroundColor: ['#f59e0b', '#334155'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    }
+                }
+            });
+        }
+
+        function toggleCheck(id) {
+            const checkbox = document.getElementById(id);
+            // Toggle since the div click triggers this, but we want to toggle the checkbox
+            checkbox.checked = !checkbox.checked;
+            
+            // UI visual update for parent div
+            const parent = checkbox.closest('div').closest('div');
+            if(checkbox.checked) {
+                parent.classList.add('bg-slate-700', 'border-amber-500');
+                parent.classList.remove('bg-slate-800', 'border-slate-700');
+                // Find icon/text changes if needed
+            } else {
+                parent.classList.remove('bg-slate-700', 'border-amber-500');
+                parent.classList.add('bg-slate-800', 'border-slate-700');
+            }
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = 4;
+            let checked = 0;
+            for(let i=1; i<=4; i++) {
+                if(document.getElementById(`c${i}`).checked) checked++;
+            }
+            
+            const percent = Math.round((checked / total) * 100);
+            
+            // Update Text
+            document.getElementById('progress-text').innerText = percent + "% Complete";
+            if(percent === 100) {
+                document.getElementById('progress-text').classList.add('text-green-400');
+                document.getElementById('progress-text').classList.remove('text-amber-400');
+                document.getElementById('progress-text').innerText = "Network Live!";
+                progressChartInstance.data.datasets[0].backgroundColor = ['#4ade80', '#334155']; // Green
+            } else {
+                document.getElementById('progress-text').classList.remove('text-green-400');
+                document.getElementById('progress-text').classList.add('text-amber-400');
+                progressChartInstance.data.datasets[0].backgroundColor = ['#f59e0b', '#334155']; // Amber
+            }
+
+            // Update Chart
+            progressChartInstance.data.datasets[0].data = [checked, total - checked];
+            progressChartInstance.update();
+        }
+
+        // --- INIT ---
+        window.addEventListener('load', () => {
+            initBudgetChart();
+            initProgressChart();
+            // Select Router by default to show initial state
+            selectNode('router'); 
+        });
+
+    </script>
+</body>
+</html>
